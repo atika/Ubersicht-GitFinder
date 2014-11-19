@@ -1,0 +1,6 @@
+{
+  "name": "GitFinder",
+  "description": "Scan visible Finder Windows and display Git Projects Statistics",
+  "author": "Dominique Da Silva",
+  "email": "dom@agonia.fr"
+}
