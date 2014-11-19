@@ -8,7 +8,7 @@ Display your Git projects on your Mac OS X desktop with [Übersicht](http://trac
 It looks for current branch, remote branch, total branches, files added, modified, untracked and ignored, and project ahead, behind state.
 The program also check if project has been modified to apply modification and add the new git project to the list with a nice animation.
 
-Additionaly, you can stop the refresh process and hide the widget (press the refresh button). But this will work only with future release of Ubersicht and it still buggy.
+<!-- Additionaly, you can stop the refresh process and hide the widget (press the refresh button). But this will work only with future release of Ubersicht and it still buggy. -->
 
 
 ![GitFinder Übersicht Widget](./screenshot.png)
