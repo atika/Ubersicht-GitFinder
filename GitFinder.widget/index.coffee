@@ -2,8 +2,9 @@
 # Scan Finder window looking for Git projects and display statistics
 # Dominique Da Silva (Nov 2014)
 # https://github.com/atika/Ubersicht-GitFinder
+# Version v0.2
 
-command: "/usr/local/bin/node /path/to/Ubersicht/Commands/GitFinder.command/GitFinder.js"
+command: "/usr/local/bin/node /Users/path/to/Commands/GitFinder.command/GitFinder.js"
 
 refreshFrequency: 10000
 
@@ -16,7 +17,7 @@ render: -> """
 """
 
 style: """
-width: 270px
+width: 280px
 color: #FFF
 font: 13px 'Helvetica'
 -webkit-user-select: none
@@ -35,17 +36,17 @@ user-select: none
 	.head
 		font-size: 14px
 		width:100%
-		height:16px
+		float:left
 		padding-bottom:4px
 		margin-bottom: 7px
 		position: relative
 		border-bottom: solid 1px rgba(255,255,255,0.2)
 
 		.title
-			width: 170px
+			width: 55%
 			padding: 2px
-			position:absolute
 			overflow: hidden
+			float:left
 			a
 				text-decoration: none
 				color:inherit
@@ -76,11 +77,10 @@ user-select: none
 		border-radius: 3px
 		padding: 3px
 
-		.current, .sep, .remote
+		.current, .sep, .remote, .size
 			border-radius: 4px
 			padding:1px 5px
 			float: left
-
 		.sep
 			background-color: rgba(#17959c, 0.6)
 			margin: 0 2px
@@ -90,6 +90,10 @@ user-select: none
 			padding:0 3px 2px 4px
 		.remote
 			color: #1fc1cb
+		.size
+			opacity:0.4
+			padding:3px 2px 0 0
+			font-size: 11px
 	
 	.stats
 		display:inline-block
@@ -287,8 +291,11 @@ update: (output, domEl) ->
 			</div>
 			<div class="branch">
 				<div class="current"></div>
-				<div class="sep" style="display:none">&gt;</div><div class="remote" style="display:none"></div>
+				<div class="size" style="display:none"></div>
+				<div class="sep" style="display:none">&gt;</div>
+				<div class="remote" style="display:none"></div>
 			</div>
+				
 			<div class="stash" style="display:none"></div>
 		</div>
 	'
@@ -327,6 +334,7 @@ update: (output, domEl) ->
 
 		$(".head .title a",repoEl).html(repo.name).attr 'href','finder://'+repo.path
 		$(".branch .current",repoEl).html(repo.branch)
+		$(".branch .size",repoEl).html(repo.size).show() if prefs.showSize
 
 		remoteEl = $(".branch .remote", repoEl)
 		sepEl = $(".branch .sep", repoEl)

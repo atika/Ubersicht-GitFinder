@@ -47,7 +47,7 @@ exec('/usr/bin/osascript ' + __dirname + '/FinderFolders.scpt', function(error, 
     return paths.forEach(function(p, i) {
       var thepath;
       thepath = p.trim();
-      return exec('git status >/dev/null 2>&1 && echo "$(git status -b --porcelain --ignored)" && echo "BRANCHES:$(git branch -v | wc -l | sed \'s/ //g\')" && echo "STASH:$(git stash list | wc -l | sed \'s/ //g\')" && echo "NAME:$(basename \"$(git rev-parse --show-toplevel)\")" || exit 1;', {
+      return exec('git status >/dev/null 2>&1 && echo "$(git status -b --porcelain --ignored)" && echo "BRANCHES:$(git branch -v | wc -l | sed \'s/ //g\')" && echo "STASH:$(git stash list | wc -l | sed \'s/ //g\')"  && echo "SIZE:$(du -h -d0 |awk \'{print $1}\')"  && echo "NAME:$(basename \"$(git rev-parse --show-toplevel)\")" || exit 1;', {
         cwd: thepath
       }, function(error, stdout, stderr) {
         var GitStatus, GitStatusInfo, repo;
@@ -63,6 +63,7 @@ exec('/usr/bin/osascript ' + __dirname + '/FinderFolders.scpt', function(error, 
             behind: GitStatusInfo.extract('behind (\\d+)', 1),
             branches: GitStatus.extract('BRANCHES:(\\d)', 1),
             stash: GitStatus.extract('STASH:(\\d)', 1),
+            size: GitStatus.extract('SIZE:(.*)', 1),
             stats: {
               added: GitStatus.count('^[AM]'),
               modified: GitStatus.count('^ M'),

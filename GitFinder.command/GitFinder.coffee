@@ -1,5 +1,5 @@
-#!/usr/local/bin/node
 
+#!/usr/local/bin/node
 # GitFinder Widget
 # Scan Finder window looking for Git projects and display statistics
 # Dominique Da Silva (Nov 2014)
@@ -50,7 +50,7 @@ exec '/usr/bin/osascript '+__dirname+'/FinderFolders.scpt', (error, stdout, stde
 	if paths.length > 0
 		paths.forEach (p,i) ->
 			thepath = p.trim()
-			exec 'git status >/dev/null 2>&1 && echo "$(git status -b --porcelain --ignored)" && echo "BRANCHES:$(git branch -v | wc -l | sed \'s/ //g\')" && echo "STASH:$(git stash list | wc -l | sed \'s/ //g\')" && echo "NAME:$(basename \"$(git rev-parse --show-toplevel)\")" || exit 1;', {cwd:thepath}, (error, stdout, stderr) ->
+			exec 'git status >/dev/null 2>&1 && echo "$(git status -b --porcelain --ignored)" && echo "BRANCHES:$(git branch -v | wc -l | sed \'s/ //g\')" && echo "STASH:$(git stash list | wc -l | sed \'s/ //g\')"  && echo "SIZE:$(du -h -d0 |awk \'{print $1}\')"  && echo "NAME:$(basename \"$(git rev-parse --show-toplevel)\")" || exit 1;', {cwd:thepath}, (error, stdout, stderr) ->
 				GitStatus = stdout.trim()
 				if error is null
 					
@@ -66,6 +66,7 @@ exec '/usr/bin/osascript '+__dirname+'/FinderFolders.scpt', (error, stdout, stde
 						behind: GitStatusInfo.extract 'behind (\\d+)', 1
 						branches: GitStatus.extract 'BRANCHES:(\\d)', 1
 						stash: GitStatus.extract 'STASH:(\\d)', 1
+						size: GitStatus.extract 'SIZE:(.*)', 1
 						stats:
 							added: GitStatus.count '^[AM]'
 							modified: GitStatus.count '^ M'
