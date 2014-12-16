@@ -80,6 +80,9 @@ Edit the __config.json__ located in the command folder to personalise the widget
 * __autoFadeTimeout:__ Auto fade timeout
 
 ## Versions
+* __v0.3__
+    - Time format
+    - Enhance stop function
 * __v0.2__
     - Display Project Size (config: `` showSize: true ``)
     - Large projects name are displayed correctly

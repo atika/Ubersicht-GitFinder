@@ -2,16 +2,16 @@
 # Scan Finder window looking for Git projects and display statistics
 # Dominique Da Silva (Nov 2014)
 # https://github.com/atika/Ubersicht-GitFinder
-# Version v0.2
+# Version v0.3
 
 command: "/usr/local/bin/node /Users/path/to/Commands/GitFinder.command/GitFinder.js"
 
-refreshFrequency: 10000
+refreshFrequency: 15000
 
 render: -> """
 	<div id="repos"></div>
 	<div class="footer">
-		<div class="onoff"></div>
+		<div class="reload"></div>
 		<div class="checkin"></div>
 	</div>
 """
@@ -132,13 +132,13 @@ user-select: none
 	.stats .ignored .label
 		background-color: rgba(#bc9180, 0.2)
 
-	.stash
+	.stats .stash
 		position: absolute
-		top: 36px
 		right: 10px
-		padding:2px 18px 4px 2px
-		background: url(GitFinder.widget/img/stack.svg) no-repeat no-repeat right 1px
+		padding:0px 23px 3px 2px
+		background: url(GitFinder.widget/img/stack.svg) no-repeat no-repeat 80% 0
 		background-size: 16px auto
+		background-color:none !important
 		border-radius: 5px
 		border-bottom: solid 3px red
 
@@ -146,7 +146,9 @@ user-select: none
 	width:100%
 	position:relative
 	margin: 0 10px
-	.onoff
+	b
+		color: #fc4907 !important
+	.reload
 		width:17px
 		height:17px
 		z-index:1000
@@ -158,6 +160,14 @@ user-select: none
 		background: url(GitFinder.widget/img/loop.svg) no-repeat no-repeat 3px 3px
 		background-size: 11px auto
 		opacity: 0.9
+		
+	.reload.off
+		background: #fc4907 url(GitFinder.widget/img/git-logo.svg) no-repeat no-repeat 0px 0px
+		width:20px
+		height:20px
+		background-size: 20px auto
+		margin-top: -7px
+		after:'toto'
 	
 	.checkin
 		font-size: 10px
@@ -171,9 +181,7 @@ user-select: none
 			position: absolute
 			right: 0
 			top: 0
-		.mark b
-			color: #fb4807 !important
-
+			
 	.spin
 		animation: spin 2s ease-out 1 alternate
 
@@ -199,50 +207,102 @@ user-select: none
 
 """
 
-changeState: (isActive, domEl) ->
-	if isActive
-		$(".onoff",domEl).css("background-color","green")
-	else
-		$(".onoff",domEl).css("background-color","red")
-		$(".repo",domEl).slideUp 300
-		$(".checkin",domEl).html('GitFinder')
-
 dataString: ""
 
-update: (output, domEl) ->
-
-	gitfinder = @
-	storageKey = "GitFinder"
-	isStopAvailable = if typeof @start is "function" then true else false
-	hasNewThings = false
-
-	$(".onoff",domEl).toggleClass('spin')
-
-	# LOCALSTORAGE STORED KEYS
-	try storedPrefs = JSON.parse(localStorage.getItem(storageKey))
-	storedPrefs = {"isActive":true}  if storedPrefs is null or storedPrefs is "undefined"
+# REPO ELEMENT TEMPLATE
+repoTemplate: """
+<div class="repo" style="display:none">
+	<div class="head">
+		<div class="title"><a href="#" target="_blank"></a></div>
+		<div class="total"></div>
+		<div class="ahead"></div>
+		<div class="behind"></div>
+	</div>
+	<div class="stats">
+		<div class="added"><div class="label">A</div><div class="count"></div></div>
+		<div class="modified"><div class="label">M</div><div class="count"></div></div>
+		<div class="untracked"><div class="label">??</div><div class="count"></div></div>
+		<div class="ignored"><div class="label">!!</div><div class="count"></div></div>
+		<div class="stash" style="display:none"></div>
+	</div>
+	<div class="branch">
+		<div class="current"></div>
+		<div class="size" style="display:none"></div>
+		<div class="sep" style="display:none">&gt;</div>
+		<div class="remote" style="display:none"></div>
+	</div>
 		
-	# BUTTON FOR ENABLE/DISABLE WIDGET
-	$(".onoff").click ->
+	
+</div>
+"""
+
+changeState: (isActive, domEl) ->
+	if isActive
+		$(".reload",domEl).removeClass('off')
+		$(".reload",domEl).css("background-color","green")
+	else
+		# $(".reload",domEl).css("background-color","#fc4907")
+		$(".reload",domEl).addClass('off')
+		$("#repos",domEl).slideUp(400)
+		$(".checkin",domEl).html('<b>Git</b>Finder')
+
+isStopAvailable: ->
+	if typeof @start is "function"
+		return true 
+	else 
+		return false
+
+storedPrefs: ->
+	# LOCALSTORAGE STORED KEYS
+	try storedPrefs = JSON.parse(localStorage.getItem("GitFinder"))
+	storedPrefs = {"isActive":true}  if storedPrefs is null or storedPrefs is "undefined"
+	return storedPrefs
+
+afterRender: (domEl) ->
+	
+	gitfinder = @
+	storedPrefs = gitfinder.storedPrefs()
+	isStopAvailable = gitfinder.isStopAvailable()
+
+	# BUTTON FOR ENABLE/DISABLE WIDGET REFRESH
+	$(".footer").click ->
 		if isStopAvailable
 			if storedPrefs.isActive
 				gitfinder.stop()
+				gitfinder.dataString = ''
 				storedPrefs.isActive = false 
 			else 
 				gitfinder.start()
 				storedPrefs.isActive = true
 		
 			gitfinder.changeState(storedPrefs.isActive, domEl)
-			localStorage.setItem(storageKey,JSON.stringify storedPrefs)
+			localStorage.setItem("GitFinder",JSON.stringify storedPrefs)
 		else
 			$(".checkin").html "Widget cannot be stopped<br> with this version of Ubersicht !"
 
-	if isStopAvailable
-		@changeState(storedPrefs.isActive, domEl)
-		return false if storedPrefs.isActive is false # Return if widget are inactif
+setPosition: (position, domEl) ->
+	# POSITION OF THE WIDGET
+	position = position.split("|")
+	switch position[0]
+		when "TL"
+			$(domEl).css({'left':parseInt(position[1]),'top':parseInt(position[2])})
+		when "TR"
+			$(domEl).css({'right':parseInt(position[1]),'top':parseInt(position[2])})
+		when "BR"
+			$(domEl).css({'right':parseInt(position[1]),'bottom':parseInt(position[2])})
+		when "C"
+			$(domEl).css({'left':$(window).width()/2-$(domEl).width()/2,'top':$(window).height()/2-50})
+		else
+			$(domEl).css({'left':parseInt(position[1]),'bottom':parseInt(position[2])})
+
+update: (output, domEl) ->
+
+	gitfinder = @
+	hasNewThings = false
+	storedPrefs = @storedPrefs()
+	isStopAvailable = gitfinder.isStopAvailable()
 
 	if output.length > 0 
-
 		if @dataString is output
 			# Nothing new
 			hasNewThings = false
@@ -258,6 +318,19 @@ update: (output, domEl) ->
 	else 
 		return 1
 
+	# Update widget position
+	gitfinder.setPosition prefs.position, domEl if hasNewThings
+
+	# Return and stop here if widget has set to inactif
+	if isStopAvailable is true
+		if storedPrefs.isActive is false 
+			gitfinder.stop()
+			gitfinder.dataString = ''
+			@changeState(false, domEl)
+			return false 
+
+	$(".reload",domEl).toggleClass('spin')
+
 	# AUTO-FADE WIDGET
 	needToFade = if $("#repos", domEl).css('opacity') is "1" then true else false
 	if prefs.autoFade is true and hasNewThings is false and needToFade 
@@ -267,55 +340,16 @@ update: (output, domEl) ->
 
 	# SET CHECK-IN DATE
 	now = new Date()
-	cheched_date = 'Checked at '+now.getHours()+':'+now.getMinutes()+':'+now.getSeconds()+''
-	cheched_date += '<div class="mark"><b>Git</b>Finder</div>' if prefs.showMark
-	$(".checkin", domEl).html cheched_date
+	checked_date = 'Checked at '+now.toTimeString().replace(/.*(\d{2}:\d{2}:\d{2}).*/, "$1")
+	checked_date += '<div class="mark"><b>Git</b>Finder</div>' if prefs.showMark
+	$(".checkin", domEl).html checked_date
+
 
 	# BREAK HERE IF HAS NOTHING NEW TO UPDATE -------------------------------
 	return 0 if hasNewThings is false
 
-	# REPO ELEMENT TEMPLATE
-	repoTpl = '
-		<div class="repo" style="display:none">
-			<div class="head">
-				<div class="title"><a href="#" target="_blank"></a></div>
-				<div class="total"></div>
-				<div class="ahead"></div>
-				<div class="behind"></div>
-			</div>
-			<div class="stats">
-				<div class="added"><div class="label">A</div><div class="count"></div></div>
-				<div class="modified"><div class="label">M</div><div class="count"></div></div>
-				<div class="untracked"><div class="label">??</div><div class="count"></div></div>
-				<div class="ignored"><div class="label">!!</div><div class="count"></div></div>
-			</div>
-			<div class="branch">
-				<div class="current"></div>
-				<div class="size" style="display:none"></div>
-				<div class="sep" style="display:none">&gt;</div>
-				<div class="remote" style="display:none"></div>
-			</div>
-				
-			<div class="stash" style="display:none"></div>
-		</div>
-	'
 
-	# POSITION OF THE WIDGET
-	position = prefs.position.split("|")
-	switch position[0]
-		when "TL"
-			$(domEl).css({'left':parseInt(position[1]),'top':parseInt(position[2])})
-		when "TR"
-			$(domEl).css({'right':parseInt(position[1]),'top':parseInt(position[2])})
-		when "BR"
-			$(domEl).css({'right':parseInt(position[1]),'bottom':parseInt(position[2])})
-		when "C"
-			$(domEl).css({'left':$(window).width()/2-$(domEl).width()/2,'top':$(window).height()/2-50})
-		else
-			$(domEl).css({'left':parseInt(position[1]),'bottom':parseInt(position[2])})
-	
-
-	# Start Refresh Widget Elements
+	# START REFRESH WIDGET ELEMENTS
 	$(domEl).find('#repos .repo').addClass('toRemove')
 
 	for repo in repos
@@ -324,7 +358,7 @@ update: (output, domEl) ->
 			$(repoEl).removeClass('toRemove')
 			isNew = false
 		else
-			repoEl = $(repoTpl).attr({id:repo.hash})
+			repoEl = $(@repoTemplate).attr({id:repo.hash})
 			isNew = true
 
 		if prefs.statsAfter
@@ -332,7 +366,9 @@ update: (output, domEl) ->
 		else
 			$('.stats',repoEl).insertAfter($('.head', repoEl))
 
-		$(".head .title a",repoEl).html(repo.name).attr 'href','finder://'+repo.path
+		$(".head .title a",repoEl).html(repo.name).attr 'href','file://'+repo.path
+		# $(".head .title a",repoEl).html(repo.name).bind 'click', ->
+		# 	$(window).open('file://'+repo.path)
 		$(".branch .current",repoEl).html(repo.branch)
 		$(".branch .size",repoEl).html(repo.size).show() if prefs.showSize
 
@@ -350,6 +386,7 @@ update: (output, domEl) ->
 		$(".head .total",repoEl).html(repo.branches)
 		$(".head .ahead",repoEl).html(repo.ahead)
 		$(".head .behind",repoEl).html(repo.behind)
+
 		if repo.stash > 0
 			$(".stash",repoEl).html(repo.stash).fadeIn()
 		else
