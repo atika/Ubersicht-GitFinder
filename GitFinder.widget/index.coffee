@@ -2,7 +2,7 @@
 # Scan Finder window looking for Git projects and display statistics
 # Dominique Da Silva (Nov 2014)
 # https://github.com/atika/Ubersicht-GitFinder
-# Version v0.3
+# Version v0.4
 
 command: "/usr/local/bin/node /Users/path/to/Commands/GitFinder.command/GitFinder.js"
 
@@ -94,7 +94,7 @@ user-select: none
 			opacity:0.4
 			padding:3px 2px 0 0
 			font-size: 11px
-	
+
 	.stats
 		display:inline-block
 		font-size:14px
@@ -128,7 +128,7 @@ user-select: none
 		text-shadow: 1px 1px 1px rgba(#000,0.4)
 
 	.stats .ignored
-		opacity: 0.4	
+		opacity: 0.4
 	.stats .ignored .label
 		background-color: rgba(#bc9180, 0.2)
 
@@ -160,7 +160,7 @@ user-select: none
 		background: url(GitFinder.widget/img/loop.svg) no-repeat no-repeat 3px 3px
 		background-size: 11px auto
 		opacity: 0.9
-		
+
 	.reload.off
 		background: #fc4907 url(GitFinder.widget/img/git-logo.svg) no-repeat no-repeat 0px 0px
 		width:20px
@@ -168,7 +168,7 @@ user-select: none
 		background-size: 20px auto
 		margin-top: -7px
 		after:'toto'
-	
+
 	.checkin
 		font-size: 10px
 		font-weight: bold
@@ -181,7 +181,7 @@ user-select: none
 			position: absolute
 			right: 0
 			top: 0
-			
+
 	.spin
 		animation: spin 2s ease-out 1 alternate
 
@@ -193,16 +193,16 @@ user-select: none
 			background-color: rgba(255,255,255,0.2)
 		50%
 			background-color: rgba(#bdfe58,0.6)
-		100% 
+		100%
 			transform: rotate(360deg)
 			background-color: rgba(255,255,255,0.0)
 
 	@keyframes fade
-		0% 
+		0%
 			background-color: rgba(255,255,255,0.2)
-		50%  
+		50%
 			background-color: rgba(#bdfe58,0.4)
-		100% 
+		100%
 			background-color: rgba(255,255,255,0)
 
 """
@@ -231,8 +231,8 @@ repoTemplate: """
 		<div class="sep" style="display:none">&gt;</div>
 		<div class="remote" style="display:none"></div>
 	</div>
-		
-	
+
+
 </div>
 """
 
@@ -248,8 +248,8 @@ changeState: (isActive, domEl) ->
 
 isStopAvailable: ->
 	if typeof @start is "function"
-		return true 
-	else 
+		return true
+	else
 		return false
 
 storedPrefs: ->
@@ -259,7 +259,7 @@ storedPrefs: ->
 	return storedPrefs
 
 afterRender: (domEl) ->
-	
+
 	gitfinder = @
 	storedPrefs = gitfinder.storedPrefs()
 	isStopAvailable = gitfinder.isStopAvailable()
@@ -270,11 +270,11 @@ afterRender: (domEl) ->
 			if storedPrefs.isActive
 				gitfinder.stop()
 				gitfinder.dataString = ''
-				storedPrefs.isActive = false 
-			else 
+				storedPrefs.isActive = false
+			else
 				gitfinder.start()
 				storedPrefs.isActive = true
-		
+
 			gitfinder.changeState(storedPrefs.isActive, domEl)
 			localStorage.setItem("GitFinder",JSON.stringify storedPrefs)
 		else
@@ -302,7 +302,7 @@ update: (output, domEl) ->
 	storedPrefs = @storedPrefs()
 	isStopAvailable = gitfinder.isStopAvailable()
 
-	if output.length > 0 
+	if output.length > 0
 		if @dataString is output
 			# Nothing new
 			hasNewThings = false
@@ -315,7 +315,7 @@ update: (output, domEl) ->
 		data = JSON.parse output
 		repos = data.gitrepos
 		prefs = data.prefs
-	else 
+	else
 		return 1
 
 	# Update widget position
@@ -323,18 +323,18 @@ update: (output, domEl) ->
 
 	# Return and stop here if widget has set to inactif
 	if isStopAvailable is true
-		if storedPrefs.isActive is false 
+		if storedPrefs.isActive is false
 			gitfinder.stop()
 			gitfinder.dataString = ''
 			@changeState(false, domEl)
-			return false 
+			return false
 
 	$(".reload",domEl).toggleClass('spin')
 
 	# AUTO-FADE WIDGET
 	needToFade = if $("#repos", domEl).css('opacity') is "1" then true else false
-	if prefs.autoFade is true and hasNewThings is false and needToFade 
-		autoFadeTimeout = setTimeout -> 
+	if prefs.autoFade is true and hasNewThings is false and needToFade
+		autoFadeTimeout = setTimeout ->
 			$("#repos", domEl).animate {'opacity':'0.3'}, 800
 		, parseInt(prefs.autoFadeTimeout - @refreshFrequency)
 
@@ -362,7 +362,7 @@ update: (output, domEl) ->
 			isNew = true
 
 		if prefs.statsAfter
-			$('.branch',repoEl).insertAfter($('.head', repoEl)) 
+			$('.branch',repoEl).insertAfter($('.head', repoEl))
 		else
 			$('.stats',repoEl).insertAfter($('.head', repoEl))
 
@@ -375,13 +375,13 @@ update: (output, domEl) ->
 		remoteEl = $(".branch .remote", repoEl)
 		sepEl = $(".branch .sep", repoEl)
 
-		if repo.remote.length	
-			remoteEl.html repo.remote; 
-			$(remoteEl).fadeIn() 
-			$(sepEl).fadeIn() 
-		else 
-			$(remoteEl).fadeOut()	
-			$(sepEl).fadeOut()	
+		if repo.remote.length
+			remoteEl.html repo.remote;
+			$(remoteEl).fadeIn()
+			$(sepEl).fadeIn()
+		else
+			$(remoteEl).fadeOut()
+			$(sepEl).fadeOut()
 
 		$(".head .total",repoEl).html(repo.branches)
 		$(".head .ahead",repoEl).html(repo.ahead)
@@ -399,7 +399,7 @@ update: (output, domEl) ->
 		$(".stats .ignored .count",repoEl).html(repo.stats.ignored)
 
 		if isNew
-			$("#repos",domEl).append(repoEl); 
+			$("#repos",domEl).append(repoEl);
 			$(repoEl).fadeIn(500).css("animation","fade 1s ease-in")
 
 	$(".toRemove", domEl).slideUp 300, ->
@@ -418,4 +418,3 @@ update: (output, domEl) ->
 	else
 		$(".stats div", domEl).css({"font-size":"", "padding":""})
 		$("#repos", domEl).css("width":"")
-
